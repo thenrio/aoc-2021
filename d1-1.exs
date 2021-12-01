@@ -1,5 +1,5 @@
 IO.binstream(:stdio, :line)
 |> Stream.map(fn x -> Integer.parse(x) |> elem(0) end)
-|> Enum.reduce({nil, 0}, fn v, {p, n} when p < v -> {v, n+1}; v, {_p, n} -> {v, n} end)
-|> elem(1)
+|> Stream.chunk_every(2, 1, :discard)
+|> Enum.count(fn [a, b] -> a < b end)
 |> IO.inspect()
