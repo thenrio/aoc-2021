@@ -1,17 +1,11 @@
+# mix run d3-1.exs <inputs/d3
 use Bitwise
 
-defmodule D3 do
-  def parse_line(line) do
-    line
-    |> String.trim_trailing()
-    |> String.codepoints()
-    |> Enum.map(&String.to_integer/1)
-  end
-end
+import Parsers
 
 {sums, length} =
   IO.binstream(:stdio, :line)
-  |> Stream.map(&D3.parse_line/1)
+  |> Stream.map(&to_codepoints_to_ints/1)
   |> Enum.reduce(nil, fn
     bits, nil ->
       {bits, 1}
@@ -31,10 +25,10 @@ gamma =
   |> String.to_integer(2)
 
 # There is no unsigned integer...
-epsilon = 
+epsilon =
   gamma
   |> bnot()
   |> band(Integer.pow(2, length(sums)) - 1)
 
-gamma * epsilon
+(gamma * epsilon)
 |> IO.inspect()
