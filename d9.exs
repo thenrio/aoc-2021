@@ -22,7 +22,7 @@ defmodule D9 do
           v = Matrix.value(matrix, ij)
 
           if Enum.all?(neighbours, fn kl -> v < Matrix.value(matrix, kl) end) do
-            {[ij | lows], Enum.reduce(neighbours, not_lows, &MapSet.put(&2, &1))}
+            {[{ij, v} | lows], Enum.reduce(neighbours, not_lows, &MapSet.put(&2, &1))}
           else
             {lows, MapSet.put(not_lows, ij)}
           end
@@ -37,4 +37,6 @@ matrix =
   |> Enum.map(&to_codepoints_to_ints/1)
 
 D9.low_points(matrix)
+|> Stream.map(&(elem(&1, 1) + 1))
+|> Enum.sum()
 |> IO.inspect()
