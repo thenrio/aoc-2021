@@ -26,8 +26,12 @@ defmodule Grid do
     end)
   end
 
-  def value(%Grid{grid: grid}, ij) do
+  def get(%Grid{grid: grid}, ij) do
     Map.get(grid, ij)
+  end
+
+  def put(%Grid{grid: grid}, ij, val) do
+    Map.put(grid, ij, val)
   end
 
   def neighbors(%Grid{size: {n, m}}, {i, j}) do

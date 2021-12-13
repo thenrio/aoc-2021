@@ -7,6 +7,6 @@ defmodule GridTest do
     |> Enum.map(&Parsers.to_codepoints_to_ints/1)
 
     grid = Grid.new(grid)
-    assert Grid.value(grid, {0, 0}) == 2
+    assert Grid.get(grid, {0, 0}) == 2
   end
 end

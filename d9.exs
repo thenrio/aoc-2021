@@ -19,9 +19,9 @@ defmodule D9 do
 
         false ->
           neighbors = Grid.neighbors(grid, ij)
-          v = Grid.value(grid, ij)
+          v = Grid.get(grid, ij)
 
-          if Enum.all?(neighbors, fn kl -> v < Grid.value(grid, kl) end) do
+          if Enum.all?(neighbors, fn kl -> v < Grid.get(grid, kl) end) do
             {[{ij, v} | lows], Enum.reduce(neighbors, not_lows, &MapSet.put(&2, &1))}
           else
             {lows, MapSet.put(not_lows, ij)}
@@ -44,7 +44,7 @@ defmodule D9 do
         neighbors =
           for kl <- Grid.neighbors(grid, ij),
               kl not in visited,
-              w = Grid.value(grid, kl),
+              w = Grid.get(grid, kl),
               w >= v and w < 9,
               do: {kl, w}
 
