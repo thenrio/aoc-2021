@@ -3,10 +3,10 @@ defmodule Grid do
   Implicit graph, uses lists.
   There is no implicit graph in bitwalker/libgraph...
   """
-  defstruct grid: [], size: 0
+  defstruct grid: %{}, size: {0, 0}
 
   def new(grid) do
-    %Grid{grid: grid, size: size(grid)}
+    %Grid{grid: to_map(grid), size: size(grid)}
   end
 
   defp size(grid) do
@@ -14,8 +14,20 @@ defmodule Grid do
     {length(grid), length(head)}
   end
 
-  def value(%Grid{grid: grid}, {i, j}) do
-    grid |> Enum.at(i) |> Enum.at(j)
+  def to_map(grid) do
+    grid
+    |> Enum.with_index()
+    |> Enum.reduce(%{}, fn {line, i}, grid ->
+      line
+      |> Enum.with_index()
+      |> Enum.reduce(grid, fn {n, j}, acc ->
+        Map.put(acc, {i, j}, n)
+      end)
+    end)
+  end
+
+  def value(%Grid{grid: grid}, ij) do
+    Map.get(grid, ij)
   end
 
   def neighbors(%Grid{size: {n, m}}, {i, j}) do
