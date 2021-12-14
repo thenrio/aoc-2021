@@ -13,7 +13,8 @@ defmodule D11 do
     end
   end
 
-  def tick(_i, {grid, count}) do
+  def tick(i, {grid, count}) do
+    IO.inspect(i, label: "tick")
     {grid, flash} =
       grid
       |> age()
@@ -32,6 +33,7 @@ defmodule D11 do
         false -> {acc, flashs}
       end
     end)
+    |> tap(fn {g, _f} -> g |> Grid.ascii() |> IO.puts() end)
   end
 
   def flash({grid, _flashs}) do
@@ -43,6 +45,7 @@ grid =
   IO.binstream(:stdio, :line)
   |> Enum.map(&to_codepoints_to_ints/1)
   |> Grid.new()
+  |> tap(fn g -> g |> Grid.ascii() |> IO.puts() end)
 
 n = System.get_env("N", "100") |> String.to_integer()
 

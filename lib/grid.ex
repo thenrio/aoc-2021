@@ -4,7 +4,12 @@ defmodule Grid do
   There is no implicit graph in bitwalker/libgraph...
   """
   defstruct grid: %{}, size: {0, 0}
+  @type t :: %Grid {
+    grid: map,
+    size: {pos_integer, pos_integer}
+  }
 
+  @spec new(list(list(pos_integer))) :: Grid.t
   def new(grid) do
     %Grid{grid: to_map(grid), size: size(grid)}
   end
@@ -14,7 +19,7 @@ defmodule Grid do
     {length(grid), length(head)}
   end
 
-  def to_map(grid) do
+  defp to_map(grid) do
     grid
     |> Enum.with_index()
     |> Enum.reduce(%{}, fn {line, i}, grid ->
@@ -26,10 +31,12 @@ defmodule Grid do
     end)
   end
 
+  @spec get(Grid.t, {pos_integer, pos_integer}) :: any
   def get(%Grid{grid: grid}, ij) do
     Map.get(grid, ij)
   end
 
+  @spec put(Grid.t, {pos_integer, pos_integer}, any) :: Grid.t
   def put(g = %Grid{grid: grid}, ij, val) do
     %{g | grid: Map.put(grid, ij, val)}
   end
@@ -42,5 +49,21 @@ defmodule Grid do
         nj >= 0 and nj < m do
       {ni, nj}
     end
+  end
+
+  def to_list(grid) do
+    {n, m} = grid.size
+    for i <- 0..n-1 do 
+      for j <- 0..m-1 do
+        get(grid, {i, j})
+      end
+    end
+  end
+
+  def ascii(grid) do
+    grid
+    |> to_list()
+    |> Stream.map(&Enum.join/1)
+    |> Enum.join("\n")
   end
 end
