@@ -1,12 +1,11 @@
 defmodule D13 do
   # Are you serious? a dot is #??
   @dot "#"
-  @not_a_dot "."
 
   @spec parse(Enumerable.t) :: {%Grid{}, list()}
   def parse(stream) do
-    {_state, grid, n, m, instructions} = Enum.reduce(stream, {:grid, %Grid{}, 0, 0, []}, &parse/2)
-    {fill(grid, n, m), Enum.reverse(instructions)}
+    {_state, grid, n, m, instructions} = Enum.reduce(stream, {:grid, %{}, 0, 0, []}, &parse/2)
+    {%Grid{grid: grid, size: {n + 1, m + 1}, default: "."}, Enum.reverse(instructions)}
   end
 
   defp parse("", {:grid, grid, n, m, []}) do
@@ -15,7 +14,7 @@ defmodule D13 do
 
   defp parse(line, {:grid, grid, n, m, []}) do
     [x, y] = line |> String.split(",") |> Enum.map(&String.to_integer/1)
-    {:grid, Grid.put(grid, {y, x}, @dot), max(y, n), max(x, m), []}
+    {:grid, Map.put(grid, {y, x}, @dot), max(y, n), max(x, m), []}
   end
 
   defp parse(<<"fold along y=", rest::binary>>, {:instructions, grid, n, m, instructions}) do
@@ -26,43 +25,44 @@ defmodule D13 do
     {:instructions, grid, n, m, [{:x, String.to_integer(rest)} | instructions]}
   end
 
-  defp fill(grid, n, m) do
-    keys = Grid.keys(grid)
-
-    grid =
-      for(i <- 0..n, j <- 0..m, do: {i, j})
-      |> Stream.reject(&Enum.member?(keys, &1))
-      |> Enum.reduce(grid, &Grid.put(&2, &1, @not_a_dot))
-
-    %{grid | size: {n + 1, m + 1}}
-  end
-
   @spec fold(instruction :: any, grid :: %Grid{}) :: %Grid{}
-  def fold({:y, y}, %Grid{grid: grid, size: size}) do
-    {n, m} = size
-    # Holy crap, I have no elixir 1.13, hence no Map.filter/2
-    # https://tracker.debian.org/pkg/elixir-lang
-    grid = Enum.filter(grid, fn {{i, _j}, _v} -> i < y end) |> Enum.into(%{})
-    %Grid{grid: grid, size: {y, m}}
+  def fold({:y, y}, grid) do
+    %Grid{grid: g, size: {n, m}} = grid
+    # This is an assert?
+    # n = 2 * y + 1
+    g = Enum.reduce(g, %{}, fn 
+      {ij = {i, _j}, val}, g when i < y -> Map.put_new(g, ij, val)
+      {{i, j}, val}, g -> Map.put_new(g, {n - 1 - i, j}, val)
+    end)
+    %{grid | grid: g, size: {y, m}}
   end
 
-  def dot?(value), do: value == @dot
+  def fold({:x, x}, grid) do
+    %Grid{grid: g, size: {n, m}} = grid
+    # This is an assert?
+    # m = 2 * x + 1
+    g = Enum.reduce(g, %{}, fn
+      {ij = {_i, j}, val}, g when j < x -> Map.put_new(g, ij, val)
+      {{i, j}, val}, g -> Map.put_new(g, {i, m - 1 - j}, val)
+    end)
+    %{grid | grid: g, size: {n, x}}
+  end
+
+  def print(grid) do
+    grid |> Grid.ascii() |> IO.puts()
+  end
 end
 
 {grid, instructions} = IO.binstream(:stdio, :line)
 |> Stream.map(&String.trim_trailing/1)
 |> D13.parse()
-|> tap(fn {grid, instructions} ->
-  grid |> Grid.ascii() |> IO.puts()
-  IO.inspect(instructions, label: "instructions")
-end)
+
+n = System.get_env("N", "1") |> String.to_integer()
 
 instructions
-|> Enum.take(1)
+|> Enum.take(n)
 |> Enum.reduce(grid, &D13.fold/2) 
-|> tap(fn grid ->
-  grid |> Grid.ascii() |> IO.puts()
-end) 
+|> tap(&D13.print/1)
 |> Grid.values()
-|> Enum.count(&D13.dot?/1)
+|> Enum.count()
 |> IO.inspect(label: "part 1")

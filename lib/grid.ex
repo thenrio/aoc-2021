@@ -1,11 +1,12 @@
 defmodule Grid do
   @moduledoc """
-  Implicit graph, uses lists.
-  There is no implicit graph in bitwalker/libgraph...
+  Implicit graph, uses map.
+  Also see bitwalker/libgraph.
   """
-  defstruct grid: %{}, size: {0, 0}
+  defstruct default: nil, grid: %{}, size: {0, 0}
 
   @type t :: %Grid{
+          default: any(),
           grid: map,
           size: {pos_integer, pos_integer}
         }
@@ -35,9 +36,12 @@ defmodule Grid do
     end)
   end
 
-  @spec get(Grid.t(), {pos_integer, pos_integer}) :: any
-  def get(%Grid{grid: grid}, ij) do
-    Map.get(grid, ij)
+  @spec get(grid :: Grid.t(), ij :: {pos_integer, pos_integer}) :: any
+  def get(%Grid{grid: grid}, ij), do: get(grid, ij, grid.default)
+
+  @spec get(grid :: Grid.t(), ij :: {pos_integer, pos_integer}, default :: any) :: any
+  def get(%Grid{grid: grid}, ij, default) do
+    Map.get(grid, ij, default)
   end
 
   @spec put(Grid.t(), {pos_integer, pos_integer}, any) :: Grid.t()
@@ -76,20 +80,21 @@ defmodule Grid do
     Map.values(grid)
   end
 
-  def to_list(grid) do
-    {n, m} = grid.size
-
-    for i <- 0..(n - 1) do
-      for j <- 0..(m - 1) do
-        get(grid, {i, j})
-      end
-    end
-  end
-
   def ascii(grid) do
     grid
     |> to_list()
     |> Stream.map(&Enum.join/1)
     |> Enum.join("\n")
   end
+
+  defp to_list(grid) do
+    {n, m} = grid.size
+
+    for i <- 0..(n - 1) do
+      for j <- 0..(m - 1) do
+        get(grid, {i, j}, grid.default)
+      end
+    end
+  end
+
 end
