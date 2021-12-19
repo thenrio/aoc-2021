@@ -1,19 +1,14 @@
 import Parsers
 
 defmodule D11 do
-  def tick(i, {grid, count}) do
+  def tick(_i, {grid, count}) do
     {grid, set} =
       grid
       |> age()
       |> flash()
 
     n = count + MapSet.size(set)
-
     {reset(set, grid), n}
-    |> tap(fn {grid, n} ->
-      IO.puts("tick: #{i}, #{n} flashs")
-      grid |> Grid.ascii() |> IO.puts()
-    end)
   end
 
   @spec age(%Grid{}) :: {%Grid{}, list()}
@@ -59,16 +54,40 @@ defmodule D11 do
   defp reset(set, grid) do
     Enum.reduce(set, grid, &Grid.put(&2, &1, 0))
   end
+
+  def reduce_while_tick_sync(grid, max) do
+    Stream.iterate(0, &(&1 + 1))
+    |> Enum.reduce_while(grid, fn i, grid ->
+      sum = grid |> Grid.values() |> Enum.sum()
+
+      case sum do
+        0 ->
+          {:halt, i}
+
+        _otherwise ->
+          case i < max do
+            true -> {:cont, tick(i, {grid, 0}) |> elem(0)}
+            false -> {:halt, {:error, max}}
+          end
+      end
+    end)
+  end
 end
 
 grid =
   IO.binstream(:stdio, :line)
   |> Enum.map(&to_codepoints_to_ints/1)
   |> Grid.new()
-  |> tap(fn g -> g |> Grid.ascii() |> IO.puts() end)
 
-# correct response of test input is 1656, number of flashs
 n = System.get_env("N", "100") |> String.to_integer()
+max = System.get_env("MAX", "1000") |> String.to_integer()
 
 1..n
 |> Enum.reduce({grid, 0}, &D11.tick/2)
+|> tap(fn {grid, m} ->
+  IO.puts("tick: #{n}, #{m} flashs")
+  grid |> Grid.ascii() |> IO.puts()
+end)
+
+D11.reduce_while_tick_sync(grid, max)
+|> IO.inspect(label: "part 2")

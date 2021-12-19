@@ -69,6 +69,10 @@ defmodule Grid do
     Map.keys(grid)
   end
 
+  def values(%Grid{grid: grid}) do
+    Map.values(grid)
+  end
+
   def to_list(grid) do
     {n, m} = grid.size
 
