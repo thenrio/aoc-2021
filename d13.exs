@@ -40,8 +40,10 @@ defmodule D13 do
   @spec fold(instruction :: any, grid :: %Grid{}) :: %Grid{}
   def fold({:y, y}, %Grid{grid: grid, size: size}) do
     {n, m} = size
-    grid = Map.filter(grid, fn {{i, _j}, _v} -> i < y end)
-    %Grid{grid: grid, size: {y - 1, m}}
+    # Holy crap, I have no elixir 1.13, hence no Map.filter/2
+    # https://tracker.debian.org/pkg/elixir-lang
+    grid = Enum.filter(grid, fn {{i, _j}, _v} -> i < y end) |> Enum.into(%{})
+    %Grid{grid: grid, size: {y, m}}
   end
 
   def dot?(value), do: value == @dot
@@ -51,7 +53,7 @@ end
 |> Stream.map(&String.trim_trailing/1)
 |> D13.parse()
 |> tap(fn {grid, instructions} ->
-  IO.puts(Grid.ascii(grid))
+  grid |> Grid.ascii() |> IO.puts()
   IO.inspect(instructions, label: "instructions")
 end)
 
@@ -60,7 +62,6 @@ instructions
 |> Enum.reduce(grid, &D13.fold/2) 
 |> tap(fn grid ->
   grid |> Grid.ascii() |> IO.puts()
-  IO.puts(grid.size)
 end) 
 |> Grid.values()
 |> Enum.count(&D13.dot?/1)

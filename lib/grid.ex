@@ -10,7 +10,10 @@ defmodule Grid do
           size: {pos_integer, pos_integer}
         }
 
-  @spec new(list(list(pos_integer))) :: Grid.t()
+  @spec new(list(list)) :: Grid.t()
+  @doc """
+  Builds a new grid from a list of list. 
+  """
   def new(grid) do
     %Grid{grid: to_map(grid), size: size(grid)}
   end
