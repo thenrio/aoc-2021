@@ -79,7 +79,7 @@ end
   |> Stream.map(&String.trim_trailing/1)
   |> D13.parse()
 
-n = System.get_env("N", "1") |> String.to_integer()
+n = System.get_env("N", instructions |> length() |> to_string()) |> String.to_integer()
 debug? = System.get_env("DEBUG", "0") |> String.to_integer() > 0
 
 instructions
