@@ -2,7 +2,7 @@ defmodule D13 do
   # Are you serious? a dot is #??
   @dot "#"
 
-  @spec parse(Enumerable.t) :: {%Grid{}, list()}
+  @spec parse(Enumerable.t()) :: {%Grid{}, list()}
   def parse(stream) do
     {_state, grid, n, m, instructions} = Enum.reduce(stream, {:grid, %{}, 0, 0, []}, &parse/2)
     {%Grid{grid: grid, size: {n + 1, m + 1}, default: "."}, Enum.reverse(instructions)}
@@ -30,10 +30,12 @@ defmodule D13 do
     %Grid{grid: g, size: {n, m}} = grid
     # This is an assert?
     # n = 2 * y + 1
-    g = Enum.reduce(g, %{}, fn 
-      {ij = {i, _j}, val}, g when i < y -> Map.put_new(g, ij, val)
-      {{i, j}, val}, g -> Map.put_new(g, {n - 1 - i, j}, val)
-    end)
+    g =
+      Enum.reduce(g, %{}, fn
+        {ij = {i, _j}, val}, g when i < y -> Map.put_new(g, ij, val)
+        {{i, j}, val}, g -> Map.put_new(g, {n - 1 - i, j}, val)
+      end)
+
     %{grid | grid: g, size: {y, m}}
   end
 
@@ -41,10 +43,12 @@ defmodule D13 do
     %Grid{grid: g, size: {n, m}} = grid
     # This is an assert?
     # m = 2 * x + 1
-    g = Enum.reduce(g, %{}, fn
-      {ij = {_i, j}, val}, g when j < x -> Map.put_new(g, ij, val)
-      {{i, j}, val}, g -> Map.put_new(g, {i, m - 1 - j}, val)
-    end)
+    g =
+      Enum.reduce(g, %{}, fn
+        {ij = {_i, j}, val}, g when j < x -> Map.put_new(g, ij, val)
+        {{i, j}, val}, g -> Map.put_new(g, {i, m - 1 - j}, val)
+      end)
+
     %{grid | grid: g, size: {n, x}}
   end
 
@@ -53,16 +57,21 @@ defmodule D13 do
   end
 end
 
-{grid, instructions} = IO.binstream(:stdio, :line)
-|> Stream.map(&String.trim_trailing/1)
-|> D13.parse()
+{grid, instructions} =
+  IO.binstream(:stdio, :line)
+  |> Stream.map(&String.trim_trailing/1)
+  |> D13.parse()
+  |> tap(fn {grid, _instructions} ->
+    IO.inspect(grid.size, label: "size nm")
+    IO.inspect(Enum.count(grid.grid), label: "length")
+  end)
 
 n = System.get_env("N", "1") |> String.to_integer()
 
 instructions
 |> Enum.take(n)
-|> Enum.reduce(grid, &D13.fold/2) 
-|> tap(&D13.print/1)
+|> Enum.reduce(grid, &D13.fold/2)
+# |> tap(&D13.print/1)
 |> Grid.values()
 |> Enum.count()
 |> IO.inspect(label: "part 1")

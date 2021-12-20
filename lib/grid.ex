@@ -96,5 +96,4 @@ defmodule Grid do
       end
     end
   end
-
 end
