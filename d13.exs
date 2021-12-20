@@ -27,26 +27,26 @@ defmodule D13 do
 
   @spec fold(instruction :: any, grid :: %Grid{}) :: %Grid{}
   def fold({:y, y}, grid) do
-    %Grid{grid: g, size: {n, m}} = grid
+    %Grid{grid: g, size: {_n, m}} = grid
     # This is an assert?
     # n = 2 * y + 1
     g =
       Enum.reduce(g, %{}, fn
         {ij = {i, _j}, val}, g when i < y -> Map.put_new(g, ij, val)
-        {{i, j}, val}, g -> Map.put_new(g, {n - 1 - i, j}, val)
+        {{i, j}, val}, g when i > y -> Map.put_new(g, {2 * y - i, j}, val)
+        _, g -> g
       end)
 
     %{grid | grid: g, size: {y, m}}
   end
 
   def fold({:x, x}, grid) do
-    %Grid{grid: g, size: {n, m}} = grid
-    # This is an assert?
-    # m = 2 * x + 1
+    %Grid{grid: g, size: {n, _m}} = grid
     g =
       Enum.reduce(g, %{}, fn
         {ij = {_i, j}, val}, g when j < x -> Map.put_new(g, ij, val)
-        {{i, j}, val}, g -> Map.put_new(g, {i, m - 1 - j}, val)
+        {{i, j}, val}, g when j > x -> Map.put_new(g, {i, 2 * x - j}, val)
+        _, g -> g
       end)
 
     %{grid | grid: g, size: {n, x}}
@@ -61,17 +61,14 @@ end
   IO.binstream(:stdio, :line)
   |> Stream.map(&String.trim_trailing/1)
   |> D13.parse()
-  |> tap(fn {grid, _instructions} ->
-    IO.inspect(grid.size, label: "size nm")
-    IO.inspect(Enum.count(grid.grid), label: "length")
-  end)
 
 n = System.get_env("N", "1") |> String.to_integer()
+debug? = System.get_env("DEBUG", "0") |> String.to_integer() > 0
 
 instructions
 |> Enum.take(n)
 |> Enum.reduce(grid, &D13.fold/2)
-# |> tap(&D13.print/1)
+|> tap(fn g -> if debug?, do: D13.print(g) end)
 |> Grid.values()
 |> Enum.count()
 |> IO.inspect(label: "part 1")
