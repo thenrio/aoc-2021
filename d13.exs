@@ -32,9 +32,17 @@ defmodule D13 do
     # n = 2 * y + 1
     g =
       Enum.reduce(g, %{}, fn
-        {ij = {i, _j}, val}, g when i < y -> Map.put_new(g, ij, val)
-        {{i, j}, val}, g when i > y -> Map.put_new(g, {2 * y - i, j}, val)
-        _, g -> g
+        {ij = {i, _j}, val}, g when i < y ->
+          Map.put_new(g, ij, val)
+
+        {{i, j}, val}, g when i > y ->
+          case 2 * y - i do
+            z when z < 0 -> g
+            z -> Map.put_new(g, {z, j}, val)
+          end
+
+        _, g ->
+          g
       end)
 
     %{grid | grid: g, size: {y, m}}
@@ -42,11 +50,20 @@ defmodule D13 do
 
   def fold({:x, x}, grid) do
     %Grid{grid: g, size: {n, _m}} = grid
+
     g =
       Enum.reduce(g, %{}, fn
-        {ij = {_i, j}, val}, g when j < x -> Map.put_new(g, ij, val)
-        {{i, j}, val}, g when j > x -> Map.put_new(g, {i, 2 * x - j}, val)
-        _, g -> g
+        {ij = {_i, j}, val}, g when j < x ->
+          Map.put_new(g, ij, val)
+
+        {{i, j}, val}, g when j > x ->
+          case 2 * x - j do
+            z when z < 0 -> g
+            z -> Map.put_new(g, {i, z}, val)
+          end
+
+        _, g ->
+          g
       end)
 
     %{grid | grid: g, size: {n, x}}
